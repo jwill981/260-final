@@ -74,6 +74,7 @@ export default {
           date: this.eventDate,
           address: this.address,
         });
+        return;
       } catch (error) {
         // console.log(error);
       }
@@ -98,7 +99,7 @@ export default {
           password: this.password,
         });
         this.$root.$data.user = response.data.user;
-        //this.addCouple();
+        this.addCouple();
       } catch (error) {
         this.error = error.response.data.message;
         this.$root.$data.user = null;

@@ -181,6 +181,26 @@ router.post('/login', async (req, res) => {
   }
 });
 
+//update user info
+router.put('/', validUser,  async (req, res) => {
+  try{
+    let user = req.user;
+    if  (!user){
+      res.send(403);
+      return;
+    }
+  
+    user.coupleName = req.body.coupleName;
+    user.eventDate = req.body.eventDate;
+    user.address = req.body.address;
+    await user.save();
+    res.send(user);
+  }catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+
 // get logged in user
 router.get('/', validUser, async (req, res) => {
   try {

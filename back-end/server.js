@@ -33,6 +33,10 @@ app.use(cookieSession({
   }
 }));
 
+// import the users module and setup its API path
+const users = require("./users.js");
+app.use("/api/users", users.routes);
+
 const multer = require('multer')
 const upload = multer({
     dest: '../front-end/public/images/',
@@ -64,17 +68,18 @@ const coupleSchema = new mongoose.Schema({
 });
 
 const Couple = mongoose.model('Couple', coupleSchema);
-//const User = mongoose.model('User', userSchema);
+//const User = users.model;
 
 //Create couple object in database
 app.post('/api/couples', async (req, res) => {
-    //let user = await User.findOne({ _id: req.params.coupleID });
-    if (!couple) {
+    let user = req.body.user;
+    if (!user) {
         res.send(404);
         return;
     }
 
     const couple = new Couple({
+        user: user,
         name: req.body.name,
         date: req.body.date,
         address: req.body.address,
@@ -116,7 +121,7 @@ app.delete('/api/couples/:coupleID', async (req, res) => {
     }
 });
 
-app.put('/api/couples/:coupleID', async (req, res) => {
+app.put('/api/couples/:coupleID', async (req, res) => {0
     try {
         let couple = await Couple.findOne({ _id: req.params.coupleID });
         if (!couple){
@@ -242,9 +247,5 @@ app.delete('/api/couples/:coupleID/items/:itemID', async (req, res) => {
     
 
 });
-
-// import the users module and setup its API path
-const users = require("./users.js");
-app.use("/api/users", users.routes);
 
 app.listen(3003, () => console.log('Server listening on port 3003!'));

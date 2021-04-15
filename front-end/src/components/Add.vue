@@ -2,13 +2,13 @@
   <div class="add">
     <h1>Add Items To Your Registry</h1>
     
-    <div class="items" v-if="couple">
+    <div class="items">
       <div class="flex-container">
         <div class="flex-child">
         <h2>Couple Information</h2>
-        <h4>Name: {{couple.name}}</h4>
-        <h4>Event Date: {{couple.date}}</h4>
-        <h4>Address: {{couple.address}}</h4>
+        <h4>Couple Name: {{user.coupleName}}</h4>
+        <h4>Event Date: {{user.eventDate}}</h4>
+        <h4>Address: {{user.address}}</h4>
         <button @click="deleteCouple()">Delete</button>
         <button @click="edit()">Edit</button>
       </div>
@@ -17,7 +17,7 @@
           <div class="editCouple" v-if="editButton">
             <form @submit.prevent="editCouple">
               <label>Couple Name: </label><input type="text" v-model="coupleName"><br>
-              <label>Wedding Date: </label><input type="text" v-model="date"><br>
+              <label>Event Date: </label><input type="text" v-model="date"><br>
               <label>Address: </label><input type="text" v-model="address"><br>
               <button type="submit">Apply Changes</button>
             </form>
@@ -106,13 +106,13 @@ export default {
       newItemDescription: ""
     };
   },
-  created() {
-    this.getCouples();
-  },
   computed: {
     suggestions() {
       let items = this.items.filter(item => item.name.toLowerCase().startsWith(this.findName.toLowerCase()));
       return items.sort((a, b) => a.name > b.name);
+    },
+    user() {
+      return this.$root.$data.user;
     }
   },
   methods: {
@@ -132,9 +132,13 @@ export default {
           date: this.date,
           address: this.address
         });
+        await axios.put('/api/users', {
+          coupleName: this.coupleName,
+          eventDate: this.date,
+          address: this.address
+        })
         this.editButton = false; 
         this.couple = null;
-        this.getCouples();
         return true;
       } catch (error) {
         //console.log(error);
@@ -143,27 +147,6 @@ export default {
     add() {
       this.couple = null;
       this.addButton = true;
-    },
-    async addCouple() {
-        try {
-            await axios.post("/api/couples", {
-                name: this.coupleName,
-                date: this.date,
-                address: this.address
-            });
-            this.addButton = false;
-            await this.getCouples();
-        } catch (error) {
-       // console.log(error);
-      }
-    },
-    async getCouples() {
-      try {
-        const response = await axios.get("api/couples");
-        this.couples = response.data;
-      } catch (error) {
-       // console.log(error);
-      }
     },
     async deleteCouple() {
       try {
