@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+//const userSchema = require('mongoose').model('User').schema;
 
 const app = express();
 
@@ -13,10 +14,24 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 // connect to the database
-mongoose.connect('mongodb://localhost:27017/wedding-registry', {
+mongoose.connect('mongodb://localhost:27017/final-registry', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
+
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: [
+    'secretValue'
+  ],
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 const multer = require('multer')
 const upload = multer({
@@ -39,16 +54,26 @@ app.post('/api/photos', upload.single('photo'), async (req, res) => {
 });
 
 const coupleSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+    },
     name: String,
     date: String,
     address: String,
 });
 
 const Couple = mongoose.model('Couple', coupleSchema);
+//const User = mongoose.model('User', userSchema);
 
 //Create couple object in database
 app.post('/api/couples', async (req, res) => {
-    console.log("I work!!!");
+    //let user = await User.findOne({ _id: req.params.coupleID });
+    if (!couple) {
+        res.send(404);
+        return;
+    }
+
     const couple = new Couple({
         name: req.body.name,
         date: req.body.date,
@@ -217,5 +242,9 @@ app.delete('/api/couples/:coupleID/items/:itemID', async (req, res) => {
     
 
 });
+
+// import the users module and setup its API path
+const users = require("./users.js");
+app.use("/api/users", users.routes);
 
 app.listen(3003, () => console.log('Server listening on port 3003!'));
