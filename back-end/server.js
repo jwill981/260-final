@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-//const userSchema = require('mongoose').model('User').schema;
 
 const app = express();
 
@@ -58,17 +57,12 @@ app.post('/api/photos', upload.single('photo'), async (req, res) => {
 });
 
 const coupleSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.ObjectId,
-        ref: 'User'
-    },
     name: String,
     date: String,
     address: String,
 });
 
 const Couple = mongoose.model('Couple', coupleSchema);
-//const User = users.model;
 
 //Create couple object in database
 app.post('/api/couples', async (req, res) => {
@@ -106,26 +100,11 @@ app.get('/api/couples', async (req, res) => {
     }
 });
 
-app.delete('/api/couples/:coupleID', async (req, res) => {
-    try{
-        let couple = await Couple.findOne({ _id: req.params.coupleID });
-        if (!couple){
-            res.send(404);
-            return;
-        }
-        await couple.delete();
-        res.sendStatus(200);
-    } catch (error) {
-        console.log(error);
-        res.sendStatus(500);
-    }
-});
-
-app.put('/api/couples/:coupleID', async (req, res) => {0
+app.put('/api/couples', async (req, res) => {0
     try {
-        let couple = await Couple.findOne({ _id: req.params.coupleID });
+        let couple = await Couple.findOne({ user: req.body.user });
         if (!couple){
-            res.send(404);
+            res.sendStatus(404);
             return;
         }
         couple.name = req.body.name;
@@ -153,13 +132,9 @@ const itemSchema = new mongoose.Schema({
 const Item = mongoose.model('Item', itemSchema);
 
 //create item object in database
-app.post('/api/couples/:coupleID/items', async (req, res) => {
+app.post('/api/items', async (req, res) => {
     try {
-        let couple = await Couple.findOne({ _id: req.params.coupleID });
-        if (!couple) {
-            res.send(404);
-            return;
-        }
+        let couple = await Couple.findOne({ user: req.body.user });
         let item = new Item({
             couple: couple,
             name: req.body.name,
@@ -177,9 +152,11 @@ app.post('/api/couples/:coupleID/items', async (req, res) => {
 });
 
 //get a list of items for a couple
-app.get('/api/couples/:coupleID/items', async (req, res) => {
+app.get('/api/couples/:user/items', async (req, res) => {
     try {
-        let couple = await Couple.findOne({ _id: req.params.coupleID });
+        console.log(req.params.user);
+        let couple = await Couple.findOne({ user._id: req.params.userID });
+        console.log(couple);
         if (!couple) {
             res.send(404);
             return;

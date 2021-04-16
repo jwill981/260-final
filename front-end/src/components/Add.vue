@@ -9,7 +9,6 @@
         <h4>Couple Name: {{user.coupleName}}</h4>
         <h4>Event Date: {{user.eventDate}}</h4>
         <h4>Address: {{user.address}}</h4>
-        <button @click="deleteCouple()">Delete</button>
         <button @click="edit()">Edit</button>
       </div>
 
@@ -48,7 +47,6 @@
       </div>
     </div>
 
-    <div  v-if="couple">
     <h3>Edit an Item on Your Registry</h3>
     <div class="edit">
           <div class="item-form">
@@ -78,7 +76,6 @@
 
       </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -106,6 +103,9 @@ export default {
       newItemDescription: ""
     };
   },
+  created() {
+    this.getItems();
+  },
   computed: {
     suggestions() {
       let items = this.items.filter(item => item.name.toLowerCase().startsWith(this.findName.toLowerCase()));
@@ -127,19 +127,19 @@ export default {
     },
     async editCouple() {
       try {
-        await axios.put(`/api/couples/${this.couple._id}`, {
+        await axios.put(`/api/couples`, {
+          user: this.$root.$data.user,
           name: this.coupleName,
           date: this.date,
           address: this.address
         });
-        await axios.put('/api/users', {
+        let response = await axios.put('/api/users', {
           coupleName: this.coupleName,
           eventDate: this.date,
           address: this.address
-        })
-        this.editButton = false; 
-        this.couple = null;
-        return true;
+        });
+        this.editButton = false;
+        this.$root.$data.user = response.data;
       } catch (error) {
         //console.log(error);
       }
@@ -148,34 +148,17 @@ export default {
       this.couple = null;
       this.addButton = true;
     },
-    async deleteCouple() {
-      try {
-        await axios.delete(`/api/couples/${this.couple._id}`);
-        this.couple = null;
-        this.getCouples();
-        return true;
-      } catch (error) {
-        ////console.log(error);
-      }
-    },
-    async selectCouple(couple) {
-      this.addButton = false;
-      this.couple = couple;
-      this.getItems();
-    },
     async getItems() {
       try {
         const response = await axios.get(
-          `api/couples/${this.couple._id}/items`
+          `api/couples/${this.$root.$data.user}/items`
         );
         this.items = response.data;
       } catch (error) {
        // console.log(error);
       }
     },
-    active(couple) {
-      return (this.couple && couple._id === this.couple._id);
-    },
+
     fileChanged(event) {
       this.file = event.target.files[0];
     },
@@ -184,7 +167,8 @@ export default {
         const formData = new FormData();
         formData.append("photo", this.file, this.file.name);
         let r1 = await axios.post("/api/photos", formData);
-        let r2 = await axios.post(`/api/couples/${this.couple._id}/items`, {
+        let r2 = await axios.post(`/api/items`, {
+          user: this.$root.$data.user,
           name: this.itemName,
           bought: false,
           path: r1.data.path,

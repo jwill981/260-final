@@ -11,6 +11,10 @@ const router = express.Router();
 // This is the schema. Users have usernames and passwords. We solemnly promise to
 // salt and hash the password!
 const userSchema = new mongoose.Schema({
+  couple: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Couple'
+},
   coupleName: String,
   address: String,
   eventDate: String,
