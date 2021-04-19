@@ -104,7 +104,6 @@ export default {
   },
   created() {
     this.getCouple();
-    //this.getItems();
   },
   computed: {
     suggestions() {
@@ -117,6 +116,7 @@ export default {
       try {
         let response = await axios.get(`/api/couple/${this.$root.$data.user._id}`);
         this.couple = response.data;
+        this.getItems();
       } catch (error) {
         //console.log(error);
       }
@@ -147,17 +147,14 @@ export default {
       this.couple = null;
       this.addButton = true;
     },
-   /* async getItems() {
+   async getItems() {
       try {
-        const response = await axios.get(
-          `api/couples/${this.$root.$data.user}/items`
-        );
+        const response = await axios.get(`api/items/${this.couple._id}`);
         this.items = response.data;
       } catch (error) {
        // console.log(error);
       }
-    }, */
-
+    },
     fileChanged(event) {
       this.file = event.target.files[0];
     },
@@ -166,8 +163,7 @@ export default {
         const formData = new FormData();
         formData.append("photo", this.file, this.file.name);
         let r1 = await axios.post("/api/photos", formData);
-        let r2 = await axios.post(`/api/items`, {
-          user: this.$root.$data.user,
+        let r2 = await axios.post(`/api/items/${this.couple._id}`, {
           name: this.itemName,
           bought: false,
           path: r1.data.path,
@@ -185,7 +181,7 @@ export default {
     },
     async deleteItem(item) {
       try {
-        await axios.delete(`/api/couples/${this.couple._id}/items/${item._id}`);
+        await axios.delete(`/api/items/${item._id}`);
         this.findItem = null;
         this.getItems();
         return true;
@@ -195,7 +191,7 @@ export default {
     },
     async editItem(item) {
       try {
-          await axios.put(`/api/couples/${this.couple._id}/items/${item._id}`, {
+          await axios.put(`/api/items/${item._id}`, {
             name: this.newItemName,
             description: this.newItemDescription,
           });

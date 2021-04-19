@@ -155,7 +155,7 @@ const itemSchema = new mongoose.Schema({
 const Item = mongoose.model('Item', itemSchema);
 
 //create item object in database
-app.post('/api/couples/:coupleID/items', async (req, res) => {
+app.post('/api/items/:coupleID', async (req, res) => {
     try {
         let couple = await Couple.findOne({ _id: req.params.coupleID });
         if (!couple) {
@@ -179,7 +179,7 @@ app.post('/api/couples/:coupleID/items', async (req, res) => {
 });
 
 //get a list of items for a couple
-app.get('/api/couples/:coupleID/items', async (req, res) => {
+app.get('/api/items/:coupleID', async (req, res) => {
     try {
         let couple = await Couple.findOne({ _id: req.params.coupleID });
         if (!couple) {
@@ -196,7 +196,7 @@ app.get('/api/couples/:coupleID/items', async (req, res) => {
 });
 
 //update an item
-app.put('/api/couples/:coupleID/items/:itemID', async (req, res) => {
+app.put('/api/items/:itemID', async (req, res) => {
     try {
         let item = await Item.findOne({_id: req.params.itemID, project: req.params.projectID});
         if (!item){
@@ -215,7 +215,7 @@ app.put('/api/couples/:coupleID/items/:itemID', async (req, res) => {
 });
 
 //bought an item
-app.put('/api/items/:itemID', async (req, res) => {
+app.put('/api/items/bought/:itemID', async (req, res) => {
     try {
         let item = await Item.findOne({_id: req.params.itemID});
         if (!item){
@@ -232,7 +232,7 @@ app.put('/api/items/:itemID', async (req, res) => {
 });
 
 //delete an item
-app.delete('/api/couples/:coupleID/items/:itemID', async (req, res) => {
+app.delete('/api/items/:itemID', async (req, res) => {
     try{
         let item = await Item.findOne({_id: req.params.itemID, project: req.params.projectID});
         if (!item){

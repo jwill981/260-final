@@ -16,11 +16,17 @@
 
   
       <h3 v-show="items.length == 0 && couple">This couple has no items on their registry!<br>Tell them to add some!</h3>
-      <div v-if="items.length > 0 && couple" class="controls">
-        <hr>
-        <button @click="showAll()">Show All</button>
-        <button @click="showNeed()">Show Still Need</button>
-        <button @click="showPurchased()">Show Purchased</button>
+      <div v-if="items.length > 0 && couple">
+        <h2>Couple Information</h2>
+        <h4>Couple Name: {{couple.name}}</h4>
+        <h4>Event Date: {{couple.date}}</h4>
+        <h4>Address: {{couple.address}}</h4>
+        <div class="controls">
+          <hr>
+          <button @click="showAll()">Show All</button>
+          <button @click="showNeed()">Show Still Need</button>
+          <button @click="showPurchased()">Show Purchased</button>
+        </div>
       </div>
 
 
@@ -30,7 +36,7 @@
         <h3>{{item.name}}</h3>
         <p>{{item.description}}</p>
         <input type="checkbox" v-model="item.bought" @click="boughtItem(item)" />
-        <label>Purchased</label><img :src="item.path" />
+        <label class="purchased-text">Purchased</label><img :src="item.path" />
       </div>
     </div>
 
@@ -74,7 +80,7 @@ export default {
   methods: {
     async boughtItem(item) {
       try {
-        await axios.put(`api/items/${item._id}`);
+        await axios.put(`api/items/bought/${item._id}`);
         this.getItems();
         return true;  
       } catch (error) {
@@ -96,7 +102,7 @@ export default {
     },
     async getItems() {
       try {
-        const response = await axios.get(`api/couples/${this.couple._id}/items`);
+        const response = await axios.get(`api/items/${this.couple._id}`);
         this.items = response.data;
       } catch (error) {
         //console.log(error);
@@ -119,6 +125,10 @@ export default {
 </script>
 
 <style scoped>
+
+.purchased-text {
+  padding-left: 10px;
+}
 
 .registry{
   padding: 20px;
