@@ -6,9 +6,9 @@
       <div class="flex-container">
         <div class="flex-child">
         <h2>Couple Information</h2>
-        <h4>Couple Name: {{user.coupleName}}</h4>
-        <h4>Event Date: {{user.eventDate}}</h4>
-        <h4>Address: {{user.address}}</h4>
+        <h4>Couple Name: {{couple.name}}</h4>
+        <h4>Event Date: {{couple.date}}</h4>
+        <h4>Address: {{couple.address}}</h4>
         <button @click="edit()">Edit</button>
       </div>
 
@@ -87,7 +87,6 @@ export default {
     return {
       addButton: null,
       editButton: null,
-      couples: [],
       couple: null,
       coupleName: "",
       date: "",
@@ -104,18 +103,24 @@ export default {
     };
   },
   created() {
-    this.getItems();
+    this.getCouple();
+    //this.getItems();
   },
   computed: {
     suggestions() {
       let items = this.items.filter(item => item.name.toLowerCase().startsWith(this.findName.toLowerCase()));
       return items.sort((a, b) => a.name > b.name);
-    },
-    user() {
-      return this.$root.$data.user;
     }
   },
   methods: {
+    async getCouple(){
+      try {
+        let response = await axios.get(`/api/couple/${this.$root.$data.user._id}`);
+        this.couple = response.data;
+      } catch (error) {
+        //console.log(error);
+      }
+    },
     addAnotherItem() {
       this.addedItem = null;
       this.itemName = "";
@@ -127,19 +132,13 @@ export default {
     },
     async editCouple() {
       try {
-        await axios.put(`/api/couples`, {
-          user: this.$root.$data.user,
+        let response = await axios.put(`/api/couples/${this.couple._id}`, {
           name: this.coupleName,
           date: this.date,
           address: this.address
         });
-        let response = await axios.put('/api/users', {
-          coupleName: this.coupleName,
-          eventDate: this.date,
-          address: this.address
-        });
+        this.couple = response.data;
         this.editButton = false;
-        this.$root.$data.user = response.data;
       } catch (error) {
         //console.log(error);
       }
@@ -148,7 +147,7 @@ export default {
       this.couple = null;
       this.addButton = true;
     },
-    async getItems() {
+   /* async getItems() {
       try {
         const response = await axios.get(
           `api/couples/${this.$root.$data.user}/items`
@@ -157,7 +156,7 @@ export default {
       } catch (error) {
        // console.log(error);
       }
-    },
+    }, */
 
     fileChanged(event) {
       this.file = event.target.files[0];

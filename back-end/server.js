@@ -4,16 +4,14 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-// parse application/x-www-form-urlencoded
+// setup body parser middleware to conver to JSON and handle URL encoded forms
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
-    extended: false
+  extended: false
 }));
 
-// parse application/json
-app.use(bodyParser.json());
-
 // connect to the database
-mongoose.connect('mongodb://localhost:27017/final-registry', {
+mongoose.connect('mongodb://localhost:27017/wedding-registry', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
@@ -40,7 +38,7 @@ const multer = require('multer')
 const upload = multer({
     dest: '../front-end/public/images/',
     limits: {
-        fileSize: 100000000
+        fileSize: 500000000
     }
 });
 
@@ -57,6 +55,10 @@ app.post('/api/photos', upload.single('photo'), async (req, res) => {
 });
 
 const coupleSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+    },
     name: String,
     date: String,
     address: String,
@@ -66,14 +68,9 @@ const Couple = mongoose.model('Couple', coupleSchema);
 
 //Create couple object in database
 app.post('/api/couples', async (req, res) => {
-    let user = req.body.user;
-    if (!user) {
-        res.send(404);
-        return;
-    }
-
+    console.log("I work!!!");
     const couple = new Couple({
-        user: user,
+        user: req.body.user,
         name: req.body.name,
         date: req.body.date,
         address: req.body.address,
@@ -83,6 +80,17 @@ app.post('/api/couples', async (req, res) => {
         res.send(couple);
     }
     catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+//get couple based on logged in user
+app.get('/api/couple/:userID', async(req, res) => {
+    try {
+        let couple = await Couple.findOne({user: req.params.userID});
+        res.send(couple);
+    } catch (error) {
         console.log(error);
         res.sendStatus(500);
     }
@@ -100,11 +108,26 @@ app.get('/api/couples', async (req, res) => {
     }
 });
 
-app.put('/api/couples', async (req, res) => {0
-    try {
-        let couple = await Couple.findOne({ user: req.body.user });
+app.delete('/api/couples/:coupleID', async (req, res) => {
+    try{
+        let couple = await Couple.findOne({ _id: req.params.coupleID });
         if (!couple){
-            res.sendStatus(404);
+            res.send(404);
+            return;
+        }
+        await couple.delete();
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+app.put('/api/couples/:coupleID', async (req, res) => {
+    try {
+        let couple = await Couple.findOne({ _id: req.params.coupleID });
+        if (!couple){
+            res.send(404);
             return;
         }
         couple.name = req.body.name;
@@ -132,9 +155,13 @@ const itemSchema = new mongoose.Schema({
 const Item = mongoose.model('Item', itemSchema);
 
 //create item object in database
-app.post('/api/items', async (req, res) => {
+app.post('/api/couples/:coupleID/items', async (req, res) => {
     try {
-        let couple = await Couple.findOne({ user: req.body.user });
+        let couple = await Couple.findOne({ _id: req.params.coupleID });
+        if (!couple) {
+            res.send(404);
+            return;
+        }
         let item = new Item({
             couple: couple,
             name: req.body.name,
@@ -152,11 +179,9 @@ app.post('/api/items', async (req, res) => {
 });
 
 //get a list of items for a couple
-app.get('/api/couples/:user/items', async (req, res) => {
+app.get('/api/couples/:coupleID/items', async (req, res) => {
     try {
-        console.log(req.params.user);
-        let couple = await Couple.findOne({ user._id: req.params.userID });
-        console.log(couple);
+        let couple = await Couple.findOne({ _id: req.params.coupleID });
         if (!couple) {
             res.send(404);
             return;

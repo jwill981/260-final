@@ -66,19 +66,6 @@ export default {
     };
   },
   methods: {
-    async addCouple() {
-      try {
-        await axios.post("/api/couples", {
-          user: this.$root.$data.user._id,
-          name: this.coupleName,
-          date: this.eventDate,
-          address: this.address,
-        });
-        return;
-      } catch (error) {
-        // console.log(error);
-      }
-    },
     async register() {
       this.error = "";
       this.errorLogin = "";
@@ -91,15 +78,18 @@ export default {
       )
         return;
       try {
+        console.log(this.username);
         let response = await axios.post("/api/users", {
-          coupleName: this.coupleName,
-          address: this.address,
-          eventDate: this.eventDate,
           username: this.username,
-          password: this.password,
+          password: this.password
         });
         this.$root.$data.user = response.data.user;
-        this.addCouple();
+        await axios.post("/api/couples", {
+          user: this.$root.$data.user,
+          name: this.coupleName,
+          date: this.eventDate,
+          address: this.address,
+        });
       } catch (error) {
         this.error = error.response.data.message;
         this.$root.$data.user = null;

@@ -11,13 +11,6 @@ const router = express.Router();
 // This is the schema. Users have usernames and passwords. We solemnly promise to
 // salt and hash the password!
 const userSchema = new mongoose.Schema({
-  couple: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Couple'
-},
-  coupleName: String,
-  address: String,
-  eventDate: String,
   username: String,
   password: String,
 });
@@ -73,11 +66,11 @@ const User = mongoose.model('User', userSchema);
 
 // middleware function to check for logged-in users
 const validUser = async (req, res, next) => {
-  if (!req.session.userID)
-    return res.status(403).send({
-      message: "not logged in"
-    });
   try {
+    if (!req.session.userID)
+      return res.status(403).send({
+        message: "not logged in"
+      });
     const user = await User.findOne({
       _id: req.session.userID
     });
@@ -106,15 +99,15 @@ const validUser = async (req, res, next) => {
 
 // create a new user
 router.post('/', async (req, res) => {
-  // Make sure that the form coming from the browser includes all required fields,
-  // otherwise return an error. A 400 error means the request was
-  // malformed.
-  if (!req.body.coupleName || !req.body.address || !req.body.eventDate || !req.body.username || !req.body.password)
-    return res.status(400).send({
-      message: "couple name, address, event date, username and password are required"
-    });
-
   try {
+    // Make sure that the form coming from the browser includes all required fields,
+    // otherwise return an error. A 400 error means the request was
+    // malformed.
+    if (!req.body.username || !req.body.password)
+      return res.status(400).send({
+        message: "username and password are required"
+      });
+
     //  Check to see if username already exists and if not send a 403 error. A 403
     // error means permission denied.
     const existingUser = await User.findOne({
@@ -127,9 +120,6 @@ router.post('/', async (req, res) => {
 
     // create a new user and save it to the database
     const user = new User({
-      coupleName: req.body.coupleName,
-      address: req.body.address,
-      eventDate: req.body.eventDate,
       username: req.body.username,
       password: req.body.password,
     });
@@ -186,20 +176,20 @@ router.post('/login', async (req, res) => {
 });
 
 //update user info
-router.put('/', validUser,  async (req, res) => {
-  try{
+router.put('/', validUser, async (req, res) => {
+  try {
     let user = req.user;
-    if  (!user){
+    if (!user) {
       res.send(403);
       return;
     }
-  
+
     user.coupleName = req.body.coupleName;
     user.eventDate = req.body.eventDate;
     user.address = req.body.address;
     await user.save();
     res.send(user);
-  }catch (error) {
+  } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
